@@ -2,9 +2,41 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import logging
+import time
+from fastapi import Request
+
 
 app = FastAPI(title="Heart Disease Prediction API")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
 
+request_count = 0
+#--------------------------------------------------------
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    global request_count
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    duration = round(time.time() - start_time, 4)
+    request_count += 1
+
+    logging.info(
+        f"method={request.method} "
+        f"path={request.url.path} "
+        f"status={response.status_code} "
+        f"latency={duration}s "
+        f"total_requests={request_count}"
+    )
+
+    return response
+
+
+#-------------------------------------------------------
 # Load model at startup
 model = joblib.load("model.pkl")
 

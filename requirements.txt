@@ -4,4 +4,5 @@ scikit-learn
 mlflow
 joblib
 pytest
-
+fastapi
+uvicorn
